@@ -1,0 +1,731 @@
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script>
+        L_PREFER_CANVAS = false;
+        L_NO_TOUCH = false;
+        L_DISABLE_3D = false;
+    </script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
+    <script src='//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
+    <link rel="stylesheet" href="https://rawgit.com/python-visualization/folium/master/folium/templates/leaflet.awesome.rotate.css" />
+    <script src="https://cdn.bootcss.com/leaflet-hash/0.2.1/leaflet-hash.js"></script>
+    <meta charset=utf-8 />
+    <!-- Load Esri Leaflet from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/2.2.1/esri-leaflet.js"></script>
+    <!-- Esri Leaflet Geocoder -->
+    <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@2.2.9/dist/esri-leaflet-geocoder.css">
+    <script src="https://unpkg.com/esri-leaflet-geocoder@2.2.8"></script>
+
+    <!-- for mapbox -->
+    <!-- Mapbox GL -->
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v0.35.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.35.1/mapbox-gl.js"></script>
+    <script src="https://rawgit.com/mapbox/mapbox-gl-leaflet/master/leaflet-mapbox-gl.js"></script>
+    <!-- for mapbox -->
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <style>
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+        }
+        .state-b,
+        .state-a{
+          transition-duration: .5s;
+          transform: scaleY(0);
+          position: absolute;
+          display: block;
+          top: 0;
+          width: 100%;}
+
+        .state-b{
+          transform-origin: 50% 0; }
+        .state-a{
+          transform-origin: 50% 100%; }
+
+        .state-b.b-active{
+          transform: scaleY(1); }
+
+        .state-a.a-active{
+          transform: scaleY(1); }
+    </style>
+
+
+</head>
+
+<body>
+
+    <div class="folium-map" id="map"></div>
+
+</body>
+<script>
+
+
+    var pos = false;
+    //Taipei
+    var default_lat = 25.03893;
+    var default_lon = 121.51760;
+    //New York
+    //var default_lat = 40.7347515;
+    //var default_lon = -74.1319948;
+    //London
+    //var default_lat = 51.5285582;
+    //var default_lon = -0.241679;
+    mapper(default_lat, default_lon, 0);
+
+    function mapper(lat, lon, radius) {
+        var dt = new Date();
+        var epoch = new Date().getTime();
+        var sec = dt.getMilliseconds()
+        var bounds = null;
+        var map = L.map(
+            'map', {
+                center: [default_lat, default_lon],
+                zoom: 14,
+                maxZoom: 18,
+                minZoom: 4,
+                maxBounds: bounds,
+                layers: [],
+                worldCopyJump: false,
+                crs: L.CRS.EPSG3857,
+                keyboard: true
+            });
+        var zl = map.getZoom();
+
+        var searchControl = L.esri.Geocoding.geosearch({placeholder: 'Search input in English...', useMapBounds:false}).addTo(map);
+
+        // create an empty layer group to store the results and add it to the map
+        var results = L.layerGroup().addTo(map);
+
+        // listen for the results event and add every result to the map
+        searchControl.on("results", function(data) {
+            results.clearLayers();
+            for (var i = data.results.length - 1; i >= 0; i--) {
+                results.addLayer(L.marker(data.results[i].latlng).bindPopup(data.results[i].text).openPopup());
+            }
+        });
+        map.locate({
+            setView: true,
+            enableHighAccuracy: true
+        });
+        var marker = L.circleMarker(map.getCenter(), {radius: 6, color: '#ff80d5', interactive: false});
+        var circle = L.circle(map.getCenter(), 0, {stroke: false, color: '#4dffff', interactive: false});
+        var trace = null;
+        function onLocationFound(e) {
+            var radius = e.accuracy / 2;
+            if (trace == null){
+                trace = L.polyline([map.getCenter()], {color: '#99ccff', opacity: 0.3});
+            };
+            marker.addTo(map);
+            trace.addTo(map);
+            circle.addTo(map);
+            marker.setLatLng([e.latitude, e.longitude]);
+            circle.setLatLng([e.latitude, e.longitude]);
+            circle.setRadius(radius);
+        };
+
+        function onLocationError(e) {
+            alert(e.message);
+            marker.remove();
+            circle.remove();
+        };
+        map.on('locationfound', onLocationFound, onLocationError);
+
+
+        //MQ
+        function mq_locator() {
+            var map_n = Number(map.getBounds().getNorth());
+            var map_e = Number(map.getBounds().getEast());
+            var map_s = Number(map.getBounds().getSouth());
+            var map_w = Number(map.getBounds().getWest());
+            var x_offset = Math.abs(map_e - map_w);
+            var y_offset = Math.abs(map_n - map_s);
+            var center_lat = map.getCenter().lat;
+            var center_lon = map.getCenter().lng;
+            if (center_lon > 180) {
+                center_lon -= 360
+            };
+            var wh = $(window).height(); // returns height of browser viewport
+            var dh = $(document).height(); // returns height of HTML document (same as pageHeight in screenshot)
+            var ww = $(window).width(); // returns width of browser viewport
+            var dw = $(document).width(); // returns width of HTML document (same as pageWidth in screenshot)
+            var zoom = map.getZoom()
+            mq_scale_array = {
+                1: 221871616,
+                2: 110935808,
+                3: 55467904,
+                4: 27733952,
+                5: 13866976,
+                6: 6933488,
+                7: 3466744,
+                8: 1733372,
+                9: 866686,
+                10: 433343,
+                11: 216671,
+                12: 108335,
+                13: 54167,
+                14: 27083,
+                15: 13541,
+                16: 6770,
+                17: 3385,
+                18: 1692,
+                19: 846,
+                20: 423
+            };
+            var mq_scale = mq_scale_array[zoom];
+            console.log([center_lat, center_lon, dw, dh, mq_scale, map_n, map_w, map_s, map_e]);
+            return [center_lat, center_lon, dw, dh, mq_scale, map_n, map_w, map_s, map_e];
+        }
+        var mq_params = mq_locator()
+        var imageUrl = 'https://web.mapquestapi.com/traffic/v2/flow?projection=merc&mapLat=' + mq_params[0] + '&mapLng=' + mq_params[1] + '&mapWidth=' + mq_params[2] + '&mapHeight=' + mq_params[3] + '&mapScale=' + mq_params[4] + '&key=Cmjtd|luur2108n1,7w=o5-gz8a&imageType=png&opacity=153&rand=' + sec + '.' + epoch;
+        var imageBounds = [
+            [mq_params[5], mq_params[6]],
+            [mq_params[7], mq_params[8]]
+        ];
+        var mq = L.imageOverlay(imageUrl, imageBounds);
+        var mq_loaded = false;
+        mq.on('load', function(ev) {
+            console.log('mq_loaded');
+            mq.addTo(map);
+            mq_loaded = true;
+        });
+
+        function mq_refresh(sec) {
+            if (mq_loaded == true) {
+                var mq_params = mq_locator()
+                var imageUrl = 'https://web.mapquestapi.com/traffic/v2/flow?projection=merc&mapLat=' + mq_params[0] + '&mapLng=' + mq_params[1] + '&mapWidth=' + mq_params[2] + '&mapHeight=' + mq_params[3] + '&mapScale=' + mq_params[4] + '&key=Cmjtd|luur2108n1,7w=o5-gz8a&imageType=png&opacity=125&rand=' + sec;
+                var imageBounds = [
+                    [mq_params[5], mq_params[6]],
+                    [mq_params[7], mq_params[8]]
+                ];
+                mq.setUrl(imageUrl);
+                mq.setBounds(imageBounds);
+            };
+        };
+
+        var starting_point;
+
+        map.on('movestart', function(ev) {
+            starting_point = map.getCenter();
+            console.log(starting_point);
+        });
+
+        map.on('moveend', function(ev) {
+            var end_point = map.getCenter();
+            console.log(map.distance(starting_point, end_point));
+            if (map.distance(starting_point, end_point) > 2) {
+                mq_refresh(sec);
+            };
+        });
+        map.on('zoomend', function(ev) {
+            mq_refresh(sec);
+        });
+
+        var mbg_day = L.featureGroup();
+
+        var mb_day = L.mapboxGL({
+            accessToken: 'pk.eyJ1IjoiYXF1YXdpbGwiLCJhIjoiY2l6NnBhc2R2MDAwMjJ3bzdobHlmbTZobCJ9.huxaZxtWxubZQjHjzyGkvw',
+            style: 'mapbox://styles/aquawill/cje5c8ddl97el2sn3zkrewovl'
+        }).addTo(mbg_day);
+
+        var mbg_night = L.featureGroup();
+
+        var mb_night = L.mapboxGL({
+            accessToken: 'pk.eyJ1IjoiYXF1YXdpbGwiLCJhIjoiY2l6NnBhc2R2MDAwMjJ3bzdobHlmbTZobCJ9.huxaZxtWxubZQjHjzyGkvw',
+            style: 'mapbox://styles/aquawill/cje5chjuxfaz32sr3k5s02plp'
+        }).addTo(mbg_night);
+
+        var he_appid = 'KymxRBvsVraBqbxy6gCt';
+        var he_appcode = 'LbNbmVAeiyg51Dbr2C_NOw';
+
+        var here_label = L.tileLayer('https://{s}.base.maps.cit.api.here.com/maptile/2.1/labeltile/newest/normal.day/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode, {
+            "attribution": "HERE_BASE_LB",
+            "detectRetina": true,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+            "subdomains": ['1', '2', '3', '4']
+        })
+
+        var here_base_night = L.tileLayer(
+            'https://{s}.base.maps.cit.api.here.com/maptile/2.1/basetile/newest/reduced.night/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode, {
+                "attribution": "HERE",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['1', '2', '3', '4']
+            }
+        ).addTo(map);
+
+        var here_base_day = L.tileLayer(
+            'https://{s}.base.maps.cit.api.here.com/maptile/2.1/basetile/newest/reduced.day/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode, {
+                "attribution": "HERE",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['1', '2', '3', '4']
+            }
+        );
+
+
+        var blank = L.tileLayer();
+
+        var google_base_night = L.tileLayer(
+            'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i410109382!3m14!2szh-TW!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2zcy5lOmd8cC5jOiNmZjIxMjEyMSxzLmU6bHxwLnY6b2ZmLHMuZTpsLml8cC52Om9mZixzLmU6bC50LmZ8cC5jOiNmZjc1NzU3NSxzLmU6bC50LnN8cC5jOiNmZjIxMjEyMSxzLnQ6MXxzLmU6Z3xwLmM6I2ZmNzU3NTc1LHMudDoxN3xzLmU6bC50LmZ8cC5jOiNmZjllOWU5ZSxzLnQ6MjF8cC52Om9mZixzLnQ6MTl8cy5lOmwudC5mfHAuYzojZmZiZGJkYmQscy50OjIwfHAudjpvZmYscy50OjJ8cy5lOmwudC5mfHAuYzojZmY3NTc1NzUscy50OjQwfHMuZTpnfHAuYzojZmYxODE4MTgscy50OjQwfHMuZTpsLnQuZnxwLmM6I2ZmNjE2MTYxLHMudDo0MHxzLmU6bC50LnN8cC5jOiNmZjFiMWIxYixzLnQ6M3xzLmU6Zy5mfHAuYzojZmYyYzJjMmMscy50OjN8cy5lOmwudC5mfHAuYzojZmY4YThhOGEscy50OjUwfHMuZTpnfHAuYzojZmYzNzM3Mzcscy50OjQ5fHMuZTpnfHAuYzojZmYzYzNjM2Mscy50Ojc4NXxzLmU6Z3xwLmM6I2ZmNGU0ZTRlLHMudDo1MXxzLmU6bC50LmZ8cC5jOiNmZjYxNjE2MSxzLnQ6NHxzLmU6bC50LmZ8cC5jOiNmZjc1NzU3NSxzLnQ6NnxzLmU6Z3xwLmM6I2ZmMDAwMDAwLHMudDo2fHMuZTpsLnQuZnxwLmM6I2ZmM2QzZDNk!4e0!5m1!5f2&token=' + sec, {
+                "attribution": "Google",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+            }
+        );
+      
+      var google_base_day = L.tileLayer(
+            'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i427131624!3m14!2szh-TW!3sUS!5e18!12m1!1e68!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2zcy5lOmx8cC52Om9mZixzLnQ6MXxzLmU6Z3xwLnY6b2ZmLHMudDoyMXxwLnY6b2ZmLHMudDoyMHxwLnY6b2ZmLHMudDoyfHAudjpvZmYscy50OjN8cy5lOmwuaXxwLnY6b2ZmLHMudDo0fHAudjpvZmY!4e0!5m1!5f2&token=' + sec, {
+                "attribution": "Google",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+            }
+        );
+
+        var kwg = L.featureGroup();
+
+
+        var kw_traffic = L.tileLayer(
+            'https://www.google.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m15!1e2!2sft%3A1vjRkaxLIjCyWBE8eEVj6hTYnbWAMVmKuVlRR5lWU!4m2!1ssg!2s!4m2!1ssc!2sLocation!4m2!1ssq!2zJExldmVsJTIwJTNEJTIwMiRMZXZlbCUyMCUzRCUyMDMkTGV2ZWwlMjAlM0QlMjA0!4m2!1sc!2zYzowNGI2MDk7bzo5OSRjOmZkZWIwMCRjOmZmOGQwMCRjOmZkMDAwMA!5i1!3m3!2szh-TW!3sUS!5e18!4e0&token=' + sec, {
+                "attribution": "Kingway",
+                "detectRetina": false,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+            }
+        ).addTo(kwg);
+
+        var ttfg = L.featureGroup();
+
+        var ttf = L.tileLayer(
+            'https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=sATA9OwG11zrMKQcCxR3eSEjj2n8Jsrg&thickness=4&' + sec, {
+                "attribution": "TomTom",
+                "detectRetina": false,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false
+            }
+        ).addTo(ttfg);
+
+        var ttig = L.featureGroup();
+
+        var tti = L.tileLayer(
+            'https://api.tomtom.com/traffic/map/4/tile/incidents/s2/{z}/{x}/{y}.png?key=sATA9OwG11zrMKQcCxR3eSEjj2n8Jsrg&' + sec, {
+                "attribution": "TomTom",
+                "detectRetina": false,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false
+            }
+        ).addTo(ttig);
+
+
+        var geg = L.featureGroup();
+
+        var ge = L.tileLayer(
+            'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i410109466!2m6!1e2!2straffic!4m2!1st!2s2530844!5i1!3m12!2sUS!3sUS!5e18!12m4!1e68!2m2!1sset!2sRoadmapSatellite!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&token=103686' + sec, {
+                "attribution": "Google",
+                "detectRetina": false,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false
+            }
+        ).addTo(geg);
+
+        var ggg = L.featureGroup();
+
+        var gg_traffic = L.tileLayer(
+            'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i377063480!2m6!1e2!2straffic!4m2!1st!2s2484906!5i1!3m20!2szh-TW!3sUS!5e18!12m5!1e14!2m1!1ssolid!2m1!1soffset_polylines!12m1!1e47!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2sp.v%3Aoff!4e0&token=' + sec, {
+                "attribution": "Google",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false
+            }
+        ).addTo(ggg);
+
+        var irg = L.featureGroup();
+
+        //https://stackoverflow.com/questions/17154781/use-bing-quadkey-tiles-instead-of-x-y-z-tiles-in-leafletjs-map
+        function _quadKey(x, y, z) {
+            var quadKey = [];
+            for (var i = z; i > 0; i--) {
+                var digit = '0';
+                var mask = 1 << (i - 1);
+                if ((x & mask) != 0) {
+                    digit++;
+                }
+                if ((y & mask) != 0) {
+                    digit++;
+                    digit++;
+                }
+                quadKey.push(digit);
+            }
+            return quadKey.join('');
+        };
+
+        //https://stackoverflow.com/questions/43826338/leaflet-custom-url-custom-tiles
+        L.TileLayer.MyCustomLayer = L.TileLayer.extend({
+            getTileUrl: function(coords) {
+                //console.log(coords)
+                return L.Util.template(this._url, {
+                    q: _quadKey(coords.x, coords.y, coords.z)
+                });
+            }
+        });
+
+        // static factory as recommended by https://leafletjs.com/reference-1.0.3.html#class
+        L.tileLayer.myCustomLayer = function(templateUrl, options) {
+            return new L.TileLayer.MyCustomLayer(templateUrl, options);
+        }
+
+        function httpGet(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, false); // false for synchronous request
+            xmlHttp.send(null);
+            return xmlHttp.responseText;
+        };
+        var irx_tk = JSON.parse(httpGet('https://www.theaa.com/rest-ws/routes-traffic/service/app/aaservlet/getincidents?&swcorner=51.0988|-2.2792&necorner=52.0867|1.1595&incidenttype=incidents'))['tokenValue'];
+        console.log(irx_tk);
+        var irx_sig_con_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=1744232250&penWidth=12&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        var irx_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=2&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        var irx_cong_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        var irx_c_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=4&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        var irx_ff_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=32&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+
+        var irg_speed = L.featureGroup();
+        var irx_speed = L.tileLayer.myCustomLayer(irx_speed_url + epoch, {
+            "attribution": "Inrix",
+            "detectRetina": false,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+        }).addTo(irg_speed);
+
+        var irg_congestion = L.featureGroup();
+        var irx_cong = L.tileLayer.myCustomLayer(irx_cong_url + epoch, {
+            "attribution": "Inrix",
+            "detectRetina": false,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+        }).addTo(irg_congestion);
+
+        var irg_comparative_speed = L.featureGroup();
+        var irx_com_spd = L.tileLayer.myCustomLayer(irx_c_speed_url + epoch, {
+            "attribution": "Inrix",
+            "detectRetina": false,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+        }).addTo(irg_comparative_speed);
+
+        var irg_significant_congestion = L.featureGroup();
+        var irx_sig_cong = L.tileLayer.myCustomLayer(irx_sig_con_url + epoch, {
+            "attribution": "Inrix",
+            "detectRetina": false,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+        }).addTo(irg_significant_congestion);
+
+        var irg_freeflow = L.featureGroup();
+        var irx_ff = L.tileLayer.myCustomLayer(irx_ff_url + epoch, {
+            "attribution": "Inrix",
+            "detectRetina": false,
+            "maxZoom": 20,
+            "minZoom": 1,
+            "noWrap": false,
+        }).addTo(irg_freeflow);
+
+        var heg_free = L.featureGroup();
+
+        var he_traffic_free = L.tileLayer(
+            'https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&token=' + epoch, {
+                "attribution": "HERE",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['1', '2', '3', '4']
+            }
+        ).addTo(heg_free);
+
+        var heg_heavy = L.featureGroup();
+
+        var he_traffic_heavy = L.tileLayer(
+            'https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&min_traffic_congestion=heavy&token=' + epoch, {
+                "attribution": "HERE",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['1', '2', '3', '4']
+            }
+        ).addTo(heg_heavy);
+
+        var heg_queuing = L.featureGroup();
+
+        var he_traffic_queuing = L.tileLayer(
+            'https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&min_traffic_congestion=queuing&token=' + epoch, {
+                "attribution": "HERE",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['1', '2', '3', '4']
+            }
+        ).addTo(heg_queuing);
+
+        var mig = L.featureGroup();
+
+        var michelin = L.tileLayer(
+            'https://map{s}.viamichelin.com/map/mapdirect?map=hybrid&z={z}&x={x}&y={y}&format=png&layer=traffic&locale=default&protocol=https&version=' + epoch, {
+                "attribution": "Michelin Traffic",
+                "detectRetina": true,
+                "maxZoom": 20,
+                "minZoom": 1,
+                "noWrap": false,
+                "subdomains": ['4', '5', '6']
+            }
+        ).addTo(mig);
+      
+        var layer_con = {
+            base_layers: {
+                "HERE Base Map (Night)": here_base_night,
+                "HERE Base Map (Day)": here_base_day,
+                "Google Base Map (Night)": google_base_night,
+                "Google Base Map (Day)": google_base_day,
+                "Blank": blank,
+            },
+            overlays: {
+                "HERE (Label)": here_label,
+                "HERE (Flow)": heg_free,
+                "HREE (Flow: JAM_FACTOR >= 4)": heg_heavy,
+                "HREE (Flow: JAM_FACTOR >= 8)": heg_queuing,
+                "Mapbox (Flow/Day)": mbg_day,
+                "Mapbox (Flow/Night)": mbg_night,
+                "Google (Flow)": ggg,
+                "Google (Flow/Incident/Label)": geg,
+                "TomTom (Flow)": ttfg,
+                "TomTom (Incidents)": ttig,
+                "MapQuest NA (Flow)": mq,
+                "Inrix EMEA/APAC (Speed)": irg_speed,
+                "Inrix EMEA/APAC (Congestion)": irg_congestion,
+                "Inrix EMEA/APAC (Significant Congestion)": irg_significant_congestion,
+                "Inrix EMEA/APAC (Comparative Speed)": irg_comparative_speed,
+                "Inrix EMEA/APAC (Free Flow)": irg_freeflow,
+                "Michelin EU (Flow)": mig,
+                "Kingway TWN (Flow)": kwg,
+            }
+        };
+        L.control.layers(
+            layer_con.base_layers,
+            layer_con.overlays, {
+                position: 'topright',
+                collapsed: true,
+                autoZIndex: true,
+                //hideSingleBase: true
+            }
+        ).addTo(map);
+
+        L.control.scale({position: 'bottomright'}).addTo(map);
+        var hash = new L.Hash(map);
+
+        $(document).ready(function() {
+            setInterval(refresh, 30000);
+        });
+
+        function refresh() {
+            var dt = new Date();
+            var sec = dt.getMilliseconds();
+
+            kw_traffic.setUrl('https://www.google.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m15!1e2!2sft%3A1vjRkaxLIjCyWBE8eEVj6hTYnbWAMVmKuVlRR5lWU!4m2!1ssg!2s!4m2!1ssc!2sLocation!4m2!1ssq!2zJExldmVsJTIwJTNEJTIwMiRMZXZlbCUyMCUzRCUyMDMkTGV2ZWwlMjAlM0QlMjA0!4m2!1sc!2zYzowNGI2MDk7bzo5OSRjOmZkZWIwMCRjOmZmOGQwMCRjOmZkMDAwMA!5i1!3m3!2szh-TW!3sUS!5e18!4e0&token=' + sec);
+            gg_traffic.setUrl('https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i377063480!2m6!1e2!2straffic!4m2!1st!2s2484906!5i1!3m20!2szh-TW!3sUS!5e18!12m5!1e14!2m1!1ssolid!2m1!1soffset_polylines!12m1!1e47!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2sp.v%3Aoff!4e0&token=' + sec);
+            ttf.setUrl('https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=sATA9OwG11zrMKQcCxR3eSEjj2n8Jsrg&thickness=4&');
+            tti.setUrl('https://api.tomtom.com/traffic/map/4/tile/incidents/s3/{z}/{x}/{y}.png?key=sATA9OwG11zrMKQcCxR3eSEjj2n8Jsrg&' + sec);
+            ge.setUrl('https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m3!1e0!2sm!3i410109466!2m6!1e2!2straffic!4m2!1st!2s2530844!5i1!3m12!2szh-TW!3sUS!5e18!12m4!1e68!2m2!1sset!2sRoadmapSatellite!12m3!1e37!2m1!1ssmartmaps!4e0!5m1!5f2&token=103686' + sec);
+
+            var irx_tk = JSON.parse(httpGet('https://www.theaa.com/rest-ws/routes-traffic/service/app/aaservlet/getincidents?&swcorner=51.0988|-2.2792&necorner=52.0867|1.1595&incidenttype=incidents'))['tokenValue'];
+            console.log(irx_tk);
+
+            var irx_sig_con_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=1744232250&penWidth=12&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+            var irx_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=2&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+            var irx_cong_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+            var irx_c_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=4&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+            var irx_ff_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=32&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+
+            irx_cong.setUrl(irx_cong_url + epoch);
+            irx_speed.setUrl(irx_speed_url + epoch);
+            irx_com_spd.setUrl(irx_c_speed_url + epoch);
+            irx_sig_cong.setUrl(irx_sig_con_url + epoch);
+            irx_ff.setUrl(irx_ff_url + epoch);
+            michelin.setUrl('https://map{s}.viamichelin.com/map/mapdirect?map=hybrid&z={z}&x={x}&y={y}&format=png&layer=traffic&locale=default&protocol=https&version=' + epoch);
+            he_traffic_free.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&token=' + epoch);
+            he_traffic_heavy.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&min_traffic_congestion=heavy&token=' + epoch);
+            he_traffic_queuing.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&min_traffic_congestion=queuing&token=' + epoch);
+            ge.redraw();
+            ttf.redraw();
+            tti.redraw();
+            kw_traffic.redraw();
+            gg_traffic.redraw();
+            he_traffic_free.redraw();
+            he_traffic_heavy.redraw();
+            he_traffic_queuing.redraw();
+            mq_refresh(sec);
+            irx_cong.redraw();
+            irx_speed.redraw();
+            irx_com_spd.redraw();
+            irx_sig_cong.redraw();
+            irx_ff.redraw();
+            michelin.redraw();
+        }
+        /* // click map to move
+        map.on('click', function(ev) {
+            console.log(ev.latlng)
+            map.panTo(ev.latlng);
+
+        });
+        */
+        var loc;
+        var trace_file = 'time_stamp,lat,lon,radius,heading,speed\n';
+
+        function loc_updater(lat, lon, radius, heading, speed) {
+            map.panTo([lat, lon]);
+            var epoch = new Date().getTime();
+            trace_file = trace_file + epoch + ',' + lat + ',' + lon + ',' + radius + ',' + heading + ',' + speed + '\n';
+            var trace_point = new L.circleMarker([lat, lon], {radius: 6, color: '#cca4d6', interactive: false, opacity: 0.3}).addTo(map);
+            trace.addLatLng([lat, lon]);
+            circle.setLatLng([lat, lon]);
+            circle.setRadius(radius);
+            console.log("new location: ", lat, lon, radius);
+        };
+        var animatedToggle = L.easyButton({
+            id: 'animated-marker-toggle',
+            position: 'bottomleft',
+            //type: 'animate',
+            states: [{
+                stateName: 'a',
+                icon: 'fa-location-arrow',
+                title: 'Start tracking position.',
+                onClick: function(control) {
+                    control.state('b');
+                    map.dragging.disable();
+                    map.touchZoom.disable();
+                    map.scrollWheelZoom.disable();
+                    map.boxZoom.disable();
+                    map.doubleClickZoom.disable();
+                    searchControl.disable();
+                    log_saver.enable();
+                    console.log('Position tracking started!')
+                    map.locate({
+                        setView: true,
+                        watch: true,
+                        enableHighAccuracy: true,
+                        timeout: 1000,
+                        maximumAge: 0,
+                        animate: true
+                    });
+                    loc = navigator.geolocation.watchPosition(function(position) {
+                        loc_updater(position.coords.latitude, position.coords.longitude, position.coords.accuracy / 2, position.coords.heading, position.coords.speed);
+                    });
+                }
+            }, {
+                stateName: 'b',
+                title: 'Stop tracking position.',
+                icon: 'fa-lock',
+                onClick: function(control) {
+                    map.stopLocate();
+                    map.dragging.enable();
+                    map.touchZoom.enable();
+                    map.scrollWheelZoom.enable();
+                    map.boxZoom.enable();
+                    map.doubleClickZoom.enable();
+                    control.state('a');
+                    console.log('Position tracking ended!');
+                    navigator.geolocation.clearWatch(loc);
+                }
+            }]
+        });
+        animatedToggle.addTo(map);
+
+        // https://thiscouldbebetter.wordpress.com/2012/12/18/loading-editing-and-saving-a-text-file-in-html5-using-javascrip/
+        function saveTextAsFile(){
+            var textToSave = trace_file;
+            var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+            var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+            var fileNameToSaveAs = 'gps.log';
+            var downloadLink = document.createElement("a");
+            downloadLink.download = fileNameToSaveAs;
+            downloadLink.innerHTML = "Download File";
+            downloadLink.href = textToSaveAsURL;
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            window.open(downloadLink);
+            //downloadLink.click();
+        };
+
+        var log_saver = L.easyButton({
+            states:[{icon: '&equiv;', onClick: function(){saveTextAsFile();}, position: 'topleft'}]
+        }).addTo(map);
+        log_saver.disable();
+
+        /*
+        map.on('keypress', function(kbev) {
+            if (kbev.originalEvent.key == "G") {
+                console.log('Position tracking started!');
+                var zl = map.getZoom();
+                map.locate({
+                    setView: true,
+                    maxZoom: zl
+                });
+                loc = navigator.geolocation.watchPosition(function(position) {
+                    loc_updater(position.coords.latitude, position.coords.longitude, position.coords.accuracy / 2);
+                })
+
+                function onLocationError(e) {
+                    alert(e.message);
+                }
+            }
+        })
+        map.on('keypress', function(kbev) {
+            if (kbev.originalEvent.key == "H") {
+                console.log('Position tracking ended!');
+                navigator.geolocation.clearWatch(loc);
+            };
+        })
+        */
+    };
+  
+</script>
+
