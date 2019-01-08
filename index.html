@@ -591,9 +591,9 @@
             irx_sig_cong.setUrl(irx_sig_con_url + epoch);
             irx_ff.setUrl(irx_ff_url + epoch);
             michelin.setUrl('https://map{s}.viamichelin.com/map/mapdirect?map=hybrid&z={z}&x={x}&y={y}&format=png&layer=traffic&locale=default&protocol=https&version=' + epoch);
-            he_traffic_free.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&token=' + epoch);
-            he_traffic_heavy.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&min_traffic_congestion=heavy&token=' + epoch);
-            he_traffic_queuing.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=KymxRBvsVraBqbxy6gCt&app_code=LbNbmVAeiyg51Dbr2C_NOw&min_traffic_congestion=queuing&token=' + epoch);
+            he_traffic_free.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&token=' + epoch);
+            he_traffic_heavy.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&min_traffic_congestion=heavy&token=' + epoch);
+            he_traffic_queuing.setUrl('https://{s}.traffic.maps.api.here.com/maptile/2.1/flowtile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?app_id=' + he_appid + '&app_code=' + he_appcode + '&min_traffic_congestion=queuing&token=' + epoch);
             ge.redraw();
             ttf.redraw();
             tti.redraw();
