@@ -399,58 +399,58 @@
             xmlHttp.send(null);
             return xmlHttp.responseText;
         };
-        var irx_tk = JSON.parse(httpGet('https://www.theaa.com/rest-ws/routes-traffic/service/app/aaservlet/getincidents?&swcorner=51.0988|-2.2792&necorner=52.0867|1.1595&incidenttype=incidents'))['tokenValue'];
-        console.log(irx_tk);
-        var irx_sig_con_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=1744232250&penWidth=12&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
-        var irx_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=2&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
-        var irx_cong_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
-        var irx_c_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=4&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
-        var irx_ff_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=32&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        // var irx_tk = JSON.parse(httpGet('https://www.theaa.com/rest-ws/routes-traffic/service/app/aaservlet/getincidents?&swcorner=51.0988|-2.2792&necorner=52.0867|1.1595&incidenttype=incidents'))['tokenValue'];
+        // console.log(irx_tk);
+        // var irx_sig_con_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=1744232250&penWidth=12&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        // var irx_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=2&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        // var irx_cong_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        // var irx_c_speed_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=8&format=png&layers=T&speedBucketId=4&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
+        // var irx_ff_url = 'https://eu-rseg-tts.inrix.com/RsegTiles/Tile.ashx?Action=GetMapTile&token=' + irx_tk + '&coverage=32&format=png&layers=T&speedBucketId=54135&penWidth=6&quadkey={q}&opacity=80&width=256&height=256&frcLevel=1,2,3,4,5,6,7&trs=2&roadsegmenttype=XDS&requestId=';
 
-        var irg_speed = L.featureGroup();
-        var irx_speed = L.tileLayer.myCustomLayer(irx_speed_url + epoch, {
-            "attribution": "Inrix",
-            "detectRetina": false,
-            "maxZoom": 20,
-            "minZoom": 1,
-            "noWrap": false,
-        }).addTo(irg_speed);
+        // var irg_speed = L.featureGroup();
+        // var irx_speed = L.tileLayer.myCustomLayer(irx_speed_url + epoch, {
+        //     "attribution": "Inrix",
+        //     "detectRetina": false,
+        //     "maxZoom": 20,
+        //     "minZoom": 1,
+        //     "noWrap": false,
+        // }).addTo(irg_speed);
 
-        var irg_congestion = L.featureGroup();
-        var irx_cong = L.tileLayer.myCustomLayer(irx_cong_url + epoch, {
-            "attribution": "Inrix",
-            "detectRetina": false,
-            "maxZoom": 20,
-            "minZoom": 1,
-            "noWrap": false,
-        }).addTo(irg_congestion);
+        // var irg_congestion = L.featureGroup();
+        // var irx_cong = L.tileLayer.myCustomLayer(irx_cong_url + epoch, {
+        //     "attribution": "Inrix",
+        //     "detectRetina": false,
+        //     "maxZoom": 20,
+        //     "minZoom": 1,
+        //     "noWrap": false,
+        // }).addTo(irg_congestion);
 
-        var irg_comparative_speed = L.featureGroup();
-        var irx_com_spd = L.tileLayer.myCustomLayer(irx_c_speed_url + epoch, {
-            "attribution": "Inrix",
-            "detectRetina": false,
-            "maxZoom": 20,
-            "minZoom": 1,
-            "noWrap": false,
-        }).addTo(irg_comparative_speed);
+        // var irg_comparative_speed = L.featureGroup();
+        // var irx_com_spd = L.tileLayer.myCustomLayer(irx_c_speed_url + epoch, {
+        //     "attribution": "Inrix",
+        //     "detectRetina": false,
+        //     "maxZoom": 20,
+        //     "minZoom": 1,
+        //     "noWrap": false,
+        // }).addTo(irg_comparative_speed);
 
-        var irg_significant_congestion = L.featureGroup();
-        var irx_sig_cong = L.tileLayer.myCustomLayer(irx_sig_con_url + epoch, {
-            "attribution": "Inrix",
-            "detectRetina": false,
-            "maxZoom": 20,
-            "minZoom": 1,
-            "noWrap": false,
-        }).addTo(irg_significant_congestion);
+        // var irg_significant_congestion = L.featureGroup();
+        // var irx_sig_cong = L.tileLayer.myCustomLayer(irx_sig_con_url + epoch, {
+        //     "attribution": "Inrix",
+        //     "detectRetina": false,
+        //     "maxZoom": 20,
+        //     "minZoom": 1,
+        //     "noWrap": false,
+        // }).addTo(irg_significant_congestion);
 
-        var irg_freeflow = L.featureGroup();
-        var irx_ff = L.tileLayer.myCustomLayer(irx_ff_url + epoch, {
-            "attribution": "Inrix",
-            "detectRetina": false,
-            "maxZoom": 20,
-            "minZoom": 1,
-            "noWrap": false,
-        }).addTo(irg_freeflow);
+        // var irg_freeflow = L.featureGroup();
+        // var irx_ff = L.tileLayer.myCustomLayer(irx_ff_url + epoch, {
+        //     "attribution": "Inrix",
+        //     "detectRetina": false,
+        //     "maxZoom": 20,
+        //     "minZoom": 1,
+        //     "noWrap": false,
+        // }).addTo(irg_freeflow);
 
         var heg_free = L.featureGroup();
 
@@ -524,11 +524,11 @@
                 "TomTom (Flow)": ttfg,
                 "TomTom (Incidents)": ttig,
                 "MapQuest NA (Flow)": mq,
-                "Inrix EMEA/APAC (Speed)": irg_speed,
-                "Inrix EMEA/APAC (Congestion)": irg_congestion,
-                "Inrix EMEA/APAC (Significant Congestion)": irg_significant_congestion,
-                "Inrix EMEA/APAC (Comparative Speed)": irg_comparative_speed,
-                "Inrix EMEA/APAC (Free Flow)": irg_freeflow,
+                // "Inrix EMEA/APAC (Speed)": irg_speed,
+                // "Inrix EMEA/APAC (Congestion)": irg_congestion,
+                // "Inrix EMEA/APAC (Significant Congestion)": irg_significant_congestion,
+                // "Inrix EMEA/APAC (Comparative Speed)": irg_comparative_speed,
+                // "Inrix EMEA/APAC (Free Flow)": irg_freeflow,
                 "Michelin EU (Flow)": mig,
                 "Kingway TWN (Flow)": kwg,
             }
